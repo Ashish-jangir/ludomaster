@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Auth\Events\PasswordReset;
+use App\Models\Gamedata;
 
 
 class AuthController extends Controller
@@ -20,14 +21,19 @@ class AuthController extends Controller
             'phone' => 'required',
             'password' => 'required|confirmed',
         ]);
-
+        
         $user = User::create([
             "name" => $fields['name'],
             "email" => $fields['email'],
             "phone" => $fields['phone'],
             "password" => bcrypt($fields['password']),
         ]);
-
+        
+        $gamedata = Gamedata::create([
+            'user_id' => $user['id'],
+            'Coins' => env('JOINING_BONUS'),
+        ]);
+        
         if(is_null($user)) {
             $response = [
                 'status' => false,
@@ -86,10 +92,6 @@ class AuthController extends Controller
             'user' => $user
         ];
         return response()->json($response, 500);
-    }
-
-    public function user(Request $request) {
-        return $request->user();
     }
 
     public function logout(Request $request) {

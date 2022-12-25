@@ -3,14 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\Auth\VerifyEmailController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Auth\ConfirmablePasswordController;
-use App\Http\Controllers\Auth\EmailVerificationNotificationController;
-use App\Http\Controllers\Auth\EmailVerificationPromptController;
-use App\Http\Controllers\Auth\PasswordController;
-use App\Http\Controllers\Auth\PasswordResetLinkController;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Http\Controllers\FriendsController;
+use App\Http\Controllers\GamedataController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,7 +20,7 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 Route::get('/', function(Request $request) {
     return "Welcome";
 });
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
+
 Route::post('/signup', [AuthController::class, 'signup']);
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -34,17 +28,22 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [AuthController::class, 'forgot']);
 
 Route::group(['middleware' => ['auth:sanctum']], function() {
-    Route::post('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/reset', [AuthController::class, 'reset']);
 });
 
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
-})->middleware(['auth', 'signed'])->name('verification.verify');
+// Api Calls For Friendship routes From Here
+Route::group(['middleware' => ['auth:sanctum']], function() {
+    Route::post('/add-friend', [FriendsController::class, 'addFriend']);
+    Route::post('/accept-friend', [FriendsController::class, 'acceptFriend']);
+    Route::post('/deny-friend', [FriendsController::class, 'denyFriend']);
+    Route::post('/remove-friend', [FriendsController::class, 'removeFriend']);
+    Route::get('/get-friends', [FriendsController::class, 'getFriends']);
+    
+});
 
-Route::get('/email/verify', function () {
-    return view('auth.verify-email');
-})->middleware('auth')->name('verification.notice');
-
-
+// Api Calls For data routes From Here
+Route::group(['middleware' => ['auth:sanctum']], function() {
+    Route::post('/get-user-data', [GamedataController::class, 'getUserData']);
+    Route::post('/update-user-data', [GamedataController::class, 'updateUserData']);
+});
