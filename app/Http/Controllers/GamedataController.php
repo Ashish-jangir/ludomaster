@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Gamedata;
 use App\Models\User;
+use App\Models\WebhookResponses;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash; 
+
 
 class GamedataController extends Controller
 {
@@ -44,6 +48,54 @@ class GamedataController extends Controller
         $response = [
             'status' => true,
             'msg' => "User data update successfull"
+        ];
+        return response()->json($response, 200);
+    }
+
+    public function authForPhoton(Request $request) {
+        WebhookResponses::create([
+            'response' => json_encode($request->query)
+        ]);
+        if(empty($request['email']) || empty($request['token']) ) {
+            $response = [
+                'ResultCode' => 3,
+                'Message' => "Invalid parameters."
+            ];
+            return response()->json($response, 200);
+        }
+
+        $user = User::where('email', $request['email'])->first();
+        if(is_null($user)) {
+            $response = [
+                'ResultCode' => 2,
+                'Message' => "Authentication failed. Wrong credentials."
+            ];
+            return response()->json($response, 200);
+        }
+        if(!Hash::check($request['token'], $user->gamedata->PhotonToken)) {
+            $response = [
+                'ResultCode' => 2,
+                'Message' => "Authentication failed. Wrong credentials."
+            ];
+            return response()->json($response, 200);
+        }    
+
+        $response = [
+            'ResultCode' => 1,
+            'UserId' => $user->id
+        ];
+        return response()->json($response, 200);
+    }
+
+    public function getPhotonToken(Request $request) {
+        $user = $request->user();
+        $token = $user->id. "|".sha1(time());
+        $user->gamedata->PhotonToken = bcrypt($token);
+        $user->gamedata->save();
+        $response = [
+            'status' => true,
+            'token' => $token,
+            'user' => $user->id
         ];
         return response()->json($response, 200);
     }

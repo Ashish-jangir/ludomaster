@@ -91,7 +91,7 @@ class AuthController extends Controller
             'token' => $token,
             'user' => $user
         ];
-        return response()->json($response, 500);
+        return response()->json($response, 200);
     }
 
     public function logout(Request $request) {

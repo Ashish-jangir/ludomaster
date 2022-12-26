@@ -25,5 +25,6 @@ class Gamedata extends Model
         'TitleFirstLogin',
         'TotalEarnings',
         'TwoPlayerWins',
+        'PhotonToken',
     ];
 }

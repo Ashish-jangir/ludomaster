@@ -46,4 +46,6 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
 Route::group(['middleware' => ['auth:sanctum']], function() {
     Route::post('/get-user-data', [GamedataController::class, 'getUserData']);
     Route::post('/update-user-data', [GamedataController::class, 'updateUserData']);
+    Route::get('/get-photon-token', [GamedataController::class, 'getPhotonToken']);
 });
+Route::get('/auth-for-photon', [GamedataController::class, 'authForPhoton']);

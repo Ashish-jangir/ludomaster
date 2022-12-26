@@ -30,6 +30,7 @@ return new class extends Migration
             $table->string('TitleFirstLogin')->nullable();
             $table->string('TotalEarnings')->nullable();
             $table->string('TwoPlayerWins')->nullable();
+            $table->string('PhotonToken')->nullable();
             $table->timestamps();
         });
     }
