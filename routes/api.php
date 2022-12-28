@@ -24,12 +24,15 @@ Route::get('/', function(Request $request) {
 Route::post('/signup', [AuthController::class, 'signup']);
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('login-with-facebook', [AuthController::class, 'loginWithFacebook']);
+Route::post('/login-with-customid', [AuthController::class, 'loginWithCustomID']);
 
 Route::post('/forgot-password', [AuthController::class, 'forgot']);
 
 Route::group(['middleware' => ['auth:sanctum']], function() {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/reset', [AuthController::class, 'reset']);
+    Route::post('/link-facebook-account', [AuthController::class, 'linkFacebookAccount']);
 });
 
 // Api Calls For Friendship routes From Here

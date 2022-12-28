@@ -17,14 +17,14 @@ class FriendsController extends Controller
         if(is_null($recipient)) {
             $response = [
                 'status' => false,
-                'msg' => 'No User exists with this id'
+                'message' => 'No User exists with this id'
             ];
             return response()->json($response, 400);
         }
         $user->befriend($recipient);
         $response = [
             'status' => true,
-            'msg' => 'sent request to the user'
+            'message' => 'sent request to the user'
         ];
         return response()->json($response, 200);
     }
@@ -38,14 +38,14 @@ class FriendsController extends Controller
         if(is_null($sender)) {
             $response = [
                 'status' => false,
-                'msg' => 'No request exists from this user'
+                'message' => 'No request exists from this user'
             ];
             return response()->json($response, 400);
         }
         $user->acceptFriendRequest($sender);
         $response = [
             'status' => true,
-            'msg' => 'Request accepted'
+            'message' => 'Request accepted'
         ];
         return response()->json($response, 200);
     }
@@ -59,14 +59,14 @@ class FriendsController extends Controller
         if(is_null($sender)) {
             $response = [
                 'status' => false,
-                'msg' => 'No user exists for this id'
+                'message' => 'No user exists for this id'
             ];
             return response()->json($response, 400);
         }
         $user->denyFriendRequest($sender);
         $response = [
             'status' => true,
-            'msg' => 'Request denied'
+            'message' => 'Request denied'
         ];
         return response()->json($response, 200);
     }
@@ -80,14 +80,14 @@ class FriendsController extends Controller
         if(is_null($sender)) {
             $response = [
                 'status' => false,
-                'msg' => 'No user exists for this id'
+                'message' => 'No user exists for this id'
             ];
             return response()->json($response, 400);
         }
         $user->unfriend($sender);
         $response = [
             'status' => true,
-            'msg' => 'User removed from friends'
+            'message' => 'User removed from friends'
         ];
         return response()->json($response, 200);
     }

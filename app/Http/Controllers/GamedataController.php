@@ -47,7 +47,7 @@ class GamedataController extends Controller
         $gamedata->save();
         $response = [
             'status' => true,
-            'msg' => "User data update successfull"
+            'message' => "User data update successfull"
         ];
         return response()->json($response, 200);
     }
