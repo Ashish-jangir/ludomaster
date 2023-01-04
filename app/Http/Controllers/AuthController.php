@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Auth\Events\PasswordReset;
 use App\Models\Gamedata;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Http;
 
 
 class AuthController extends Controller
@@ -17,7 +18,7 @@ class AuthController extends Controller
     //
     public function signup(Request $request) {
         $validator = Validator::make($request->all(), [
-            'name'=>'required',
+            'name'=>'required | unique:users,name',
             'email' => 'required | email | unique:users,email',
             'phone' => 'required',
             'password' => 'required|confirmed',
@@ -48,7 +49,8 @@ class AuthController extends Controller
         
         $gamedata = Gamedata::create([
             'user_id' => $user['id'],
-            'Coins' => env('JOINING_BONUS'),
+            'Coins' => config('app.custom_config.joining_bonus'),
+            'LoggedType' => 'EmailAccount'
         ]);
 
         
@@ -136,9 +138,22 @@ class AuthController extends Controller
     }
 
     public function forgot(Request $request) {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'email' => 'required|email',
         ]);
+
+        $errorCombined = array();
+        foreach( $validator->errors()->all() as $error) {
+            array_push($errorCombined, $error);
+        }
+        if ($validator->fails()) {
+            $response = [
+                'status' => false,
+                'message' => "Invalid fields sent",
+                'errors' => $errorCombined,
+            ];
+            return response()->json($response, 400);
+        }
 
         $user = User::where('email', $request['email'])->first();
         if(is_null($user)) {
@@ -184,22 +199,37 @@ class AuthController extends Controller
         ];
         return response($response, 200);
     }
-
      // This function is called when the client sends an access token to your server for authentication.
-    public function loginWithFacebook(Request $request)
-    {
-        $fields = $request->validate([
+    public function loginWithFacebook(Request $request) {
+        $validator = Validator::make($request->all(), [
             'access_token' => 'required'
         ]);
-        $accessToken = $fields['access_token'];
-
-        $access_token_server_url = 'https://graph.facebook.com/oauth/access_token?client_id='.env("FB_CLIENT_ID").'&client_secret='.env("FB_CLIENT_SECRET").'&grant_type=client_credentials';
-        $access_token_server_response = file_get_contents($access_token_server_url);
-        $access_token_server = json_decode($access_token_server_response, true)['access_token'];
+        $errorCombined = array();
+        foreach( $validator->errors()->all() as $error) {
+            array_push($errorCombined, $error);
+        }
+        if ($validator->fails()) {
+            $response = [
+                'status' => false,
+                'message' => "Invalid fields sent",
+                'errors' => $errorCombined,
+            ];
+            return response()->json($response, 400);
+        }
+        $accessToken = $validator->validated()['access_token'];
+        
+        $access_token_server = Http::get('https://graph.facebook.com/oauth/access_token', [
+            'client_id' => config('services.facebook.client_id'),
+            'client_secret' => config('services.facebook.client_secret'),
+            'grant_type' => 'client_credentials'
+        ])['access_token'];
 
         // Send a GET request to the Facebook Graph API to validate the access token.
-        $validationUrl = 'https://graph.facebook.com/debug_token?input_token=' . $accessToken . '&access_token=' . $access_token_server;
-        $validationResponse = file_get_contents($validationUrl);
+        $validationResponse = Http::get('https://graph.facebook.com/debug_token', [
+            'input_token' => $accessToken,
+            'access_token' => $access_token_server,
+        ]);
+
         $validationData = json_decode($validationResponse, true);
 
         // Check if the access token is valid.
@@ -218,52 +248,99 @@ class AuthController extends Controller
                 $token = $user->createToken('authToken')->plainTextToken;
 
                 // Return the access token to the client.
-                return response()->json(['access_token' => $token], 200);
+                $response = [
+                    'status' => true,
+                    'message' => "User already exist. Created New access token",
+                    'newly_created' => false,
+                    'token' => $token,
+                    'id' => $user['id']
+                ];
+                return response()->json($response, 200);
             } else {
                 // The user was not found in the database.
 
                 // Send a GET request to the Facebook Graph API to fetch the user
-                $profileUrl = 'https://graph.facebook.com/me?access_token=' . $accessToken;
-                $profileResponse = file_get_contents($profileUrl);
+                $profileResponse = Http::get('https://graph.facebook.com/me', [
+                    'access_token' => $accessToken,
+                ]);
                 $profileData = json_decode($profileResponse, true);
                  // The user was not found in the database.
-                $user = new User();
-                $user->name = $profileData['name'];
-                
+                $name = $profileData['name']. ((User::all()->count() == 0 ? 0 : User::all()->last()->id) + 1);
+                $user = User::createUser($name,null, null, null, $profileData['id'], null);
+
                 if(!empty($profileData['email']))
-                    $user->email = $profileData['email'];
-                
-                $user->facebook_id = $profileData['id'];
+                $user->email = $profileData['email'];
                 $user->save();
+                $user->gamedata->LoggedType = "Facebook";
+                $user->gamedata->AvatarIndex = "fb";
+                $user->gamedata->save();
 
                 $token = $user->createToken('authToken')->plainTextToken;
-                return response()->json(['access_token' => $token], 200);
+                $response = [
+                    'status' => true,
+                    'message' => "New user and access token created",
+                    'newly_created' => true,
+                    'id' => $user['id'],
+                    'token' => $token
+                ];
+                return response()->json($response, 200);
             }
         } else {
             // The access token is not valid.
-            return response()->json(['error' => 'Invalid access token'], 401);
+            $response = [
+                'status' => false,
+                'message' => "Invalid access token",
+            ];
+            return response()->json($response, 401);
         }
     }
 
     public function linkFacebookAccount(Request $request) {         //will be in sanctum middleware
-        $fields = $request->validate([
+        $validator = Validator::make($request->all(), [
             'access_token' => 'required',   //provided by facebook sdk
             'force_link' => 'required'      //If another user is already linked to the account, unlink the other user and re-link.  Rarely used
         ]);
+        $errorCombined = array();
+        foreach( $validator->errors()->all() as $error) {
+            array_push($errorCombined, $error);
+        }
+        if ($validator->fails()) {
+            $response = [
+                'status' => false,
+                'message' => "Invalid fields sent",
+                'errors' => $errorCombined,
+            ];
+            return response()->json($response, 400);
+        }
+        $fields = $validator->validated();
         $accessToken = $request['access_token'];
-        $validationUrl = 'https://graph.facebook.com/debug_token?input_token=' . $accessToken . '&access_token=' . config(env('FB_CLIENT_ID')) . '|' . config(env('FB_CLIENT_SECRET'));
+        $access_token_server_url = 'https://graph.facebook.com/oauth/access_token?client_id='.config('services.facebook.client_id').'&client_secret='.config('services.facebook.client_secret').'&grant_type=client_credentials';
+        $access_token_server_response = file_get_contents($access_token_server_url);
+        $access_token_server = json_decode($access_token_server_response, true)['access_token'];
+
+        // Send a GET request to the Facebook Graph API to validate the access token.
+        $validationUrl = 'https://graph.facebook.com/debug_token?input_token=' . $accessToken . '&access_token=' . $access_token_server;
         $validationResponse = file_get_contents($validationUrl);
         $validationData = json_decode($validationResponse, true);
 
         if ($validationData['data']['is_valid']) {
             $facebookId = $validationData['data']['user_id'];
             $user = User::where('facebook_id', $facebookId)->first();
+            $profileUrl = 'https://graph.facebook.com/me?access_token=' . $accessToken;
+            $profileResponse = file_get_contents($profileUrl);
+            $profileData = json_decode($profileResponse, true);
             if ($user) {
-                if($fields['force_link']) {
+                if($fields['force_link'] == "true") {
                     $user->facebook_id = null;
+                    $user->name = "User".$user->id;
                     $user->save();
                     $user = $request->user();
                     $user->facebook_id = $facebookId;
+                    $user->name = $profileData['name']. $user->id;
+                    $user->save();
+                    $user->gamedata->LoggedType = "Facebook";
+                    $user->gamedata->AvatarIndex = "fb";
+                    $user->gamedata->save();
 
                     $response = [
                         'status' => true,
@@ -282,6 +359,7 @@ class AuthController extends Controller
             else {
                 $user = $request->user();
                 $user->facebook_id = $facebookId;
+                $user->save();
 
                 $response = [
                     'status' => true,
@@ -300,22 +378,40 @@ class AuthController extends Controller
     }
 
     public function loginWithCustomID(Request $request) {
-        $fields = $request->validate([
+        $validator = Validator::make($request->all(), [
             'custom_id' => 'required'
         ]);
-
+        $errorCombined = array();
+        $newly_created = false;
+        foreach( $validator->errors()->all() as $error) {
+            array_push($errorCombined, $error);
+        }
+        if ($validator->fails()) {
+            $response = [
+                'status' => false,
+                'message' => "Invalid fields sent",
+                'errors' => $errorCombined,
+            ];
+            return response()->json($response, 400);
+        }
+        $fields = $validator->validated();
         $user = User::where('custom_id', $fields['custom_id'])->first();
         if(is_null($user)) {
             $name = "User ". ((User::all()->count() == 0 ? 0 : User::all()->last()->id) + 1);
             $custom_id = $fields['custom_id'];
             $user = User::createUser($name, null, null, null, null, $custom_id);
+            $user->gamedata->LoggedType = "Guest";
+            $user->gamedata->save();
+            $newly_created = true;
         }
         $token = $user->createToken('guest')->plainTextToken;
 
         $response = [
             'status' => true,
+            'message' => $newly_created ? "New account created with custome Id" : "Logged in to existing account with custom id",
             'token' => $token,
-            'user' => $user
+            'id' => $user->id,
+            'newly_created' => $newly_created
         ];
         return response()->json($response, 201);
     }

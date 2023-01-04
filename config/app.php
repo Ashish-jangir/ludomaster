@@ -212,4 +212,10 @@ return [
         // 'ExampleClass' => App\Example\ExampleClass::class,
     ])->toArray(),
 
+    'custom_config' => [
+        'joining_bonus' => env('JOINING_BONUS'),
+        'app_url' => env('APP_URL'),
+        'app_version' => env('APP_VERSION')
+    ]
+
 ];

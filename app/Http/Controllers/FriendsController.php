@@ -4,20 +4,33 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\Validator;
 
 class FriendsController extends Controller
 {
-    //
     public function addFriend(Request $request) {
-        $fields = $request->validate([
-            'user_id' => 'required'
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required_without:name', 
         ]);
+        $errorCombined = array();
+        foreach( $validator->errors()->all() as $error) {
+            array_push($errorCombined, $error);
+        }
+        if ($validator->fails()) {
+            $response = [
+                'status' => false,
+                'message' => "Invalid fields sent",
+                'errors' => $errorCombined,
+            ];
+            return response()->json($response, 400);
+        }
+        $fields = $validator->validated();
         $user = $request->user();
-        $recipient = User::where('id', $fields['user_id'])->first();
+        $recipient = empty($request['user_id']) ? User::where('name', $fields['name'])->first() : User::where('id', $fields['user_id'])->first();
         if(is_null($recipient)) {
             $response = [
                 'status' => false,
-                'message' => 'No User exists with this id'
+                'message' => 'No User exists with this name or id'
             ];
             return response()->json($response, 400);
         }
@@ -30,9 +43,22 @@ class FriendsController extends Controller
     }
 
     public function acceptFriend(Request $request) {
-        $fields = $request->validate([
-            'sender_id' => 'required'
+        $validator = Validator::make($request->all(), [
+            'sender_id' => 'required',
         ]);
+        $errorCombined = array();
+        foreach( $validator->errors()->all() as $error) {
+            array_push($errorCombined, $error);
+        }
+        if ($validator->fails()) {
+            $response = [
+                'status' => false,
+                'message' => "Invalid fields sent",
+                'errors' => $errorCombined,
+            ];
+            return response()->json($response, 400);
+        }
+        $fields = $validator->validated();
         $user = $request->user();
         $sender = User::where('id', $fields['sender_id'])->first();
         if(is_null($sender)) {
@@ -72,9 +98,22 @@ class FriendsController extends Controller
     }
 
     public function removeFriend(Request $request) {
-        $fields = $request->validate([
-            'friend_id' => 'required'
+        $validator = Validator::make($request->all(), [
+            'friend_id' => 'required',
         ]);
+        $errorCombined = array();
+        foreach( $validator->errors()->all() as $error) {
+            array_push($errorCombined, $error);
+        }
+        if ($validator->fails()) {
+            $response = [
+                'status' => false,
+                'message' => "Invalid fields sent",
+                'errors' => $errorCombined,
+            ];
+            return response()->json($response, 400);
+        }
+        $fields = $validator->validated();
         $user = $request->user();
         $sender = User::where('id', $fields['friend_id'])->first();
         if(is_null($sender)) {
@@ -101,6 +140,7 @@ class FriendsController extends Controller
         }
         $response = [
             'status' => true,
+            'message' => "List of friends fetched",
             'friends' => $friends
         ];
         return response()->json($response, 200);

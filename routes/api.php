@@ -24,7 +24,7 @@ Route::get('/', function(Request $request) {
 Route::post('/signup', [AuthController::class, 'signup']);
 
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('login-with-facebook', [AuthController::class, 'loginWithFacebook']);
+Route::post('/login-with-facebook', [AuthController::class, 'loginWithFacebook']);
 Route::post('/login-with-customid', [AuthController::class, 'loginWithCustomID']);
 
 Route::post('/forgot-password', [AuthController::class, 'forgot']);
@@ -50,5 +50,15 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
     Route::post('/get-user-data', [GamedataController::class, 'getUserData']);
     Route::post('/update-user-data', [GamedataController::class, 'updateUserData']);
     Route::get('/get-photon-token', [GamedataController::class, 'getPhotonToken']);
+    Route::get('/get-game-history', [GamedataController::class, 'getPhotonToken']);     // TODO
+    Route::get('/my-withdraw-data', [GamedataController::class, 'getPhotonToken']);     // TODO
 });
 Route::get('/auth-for-photon', [GamedataController::class, 'authForPhoton']);
+
+Route::get('/app-info', function() {
+    $response = [
+        'url' => config('app.custom_config.app_url'),
+        'version' =>config('app.custom_config.app_version')
+    ];
+    return response()->json($response,200);
+});
