@@ -117,15 +117,12 @@ class GamedataController extends Controller
     }
 
     public function authForPhoton(Request $request) {
-        WebhookResponses::create([
-            'response' => json_encode($request->query)
-        ]);
         if(empty($request['id']) || empty($request['token']) ) {
             $response = [
                 'ResultCode' => 3,
                 'Message' => "Invalid parameters."
             ];
-            return response()->json($response, 200);
+            return response()->json($response, 400);
         }
 
         $user = User::where('id', $request['id'])->first();
@@ -134,14 +131,14 @@ class GamedataController extends Controller
                 'ResultCode' => 2,
                 'Message' => "Authentication failed. No User Exists with this id."
             ];
-            return response()->json($response, 200);
+            return response()->json($response, 400);
         }
         if(!Hash::check($request['token'], $user->gamedata->PhotonToken)) {
             $response = [
                 'ResultCode' => 2,
                 'Message' => "Authentication failed. Wrong Photon Token."
             ];
-            return response()->json($response, 200);
+            return response()->json($response, 400);
         }    
 
         $response = [

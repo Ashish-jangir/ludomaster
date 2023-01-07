@@ -72,6 +72,41 @@ class AuthController extends Controller
         return response()->json($response, 201);
     }
 
+    public function resendEmail(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required | email',
+        ]);
+        $errorCombined = array();
+        foreach( $validator->errors()->all() as $error) {
+            array_push($errorCombined, $error);
+        }
+        if ($validator->fails()) {
+            $response = [
+                'status' => false,
+                'message' => "Invalid fields sent",
+                'errors' => $errorCombined,
+            ];
+            return response()->json($response, 400);
+        }
+        $user = User::where('email', $validator->validated()['email'])->first();
+
+        if($user->email_verified_at == null) {
+            $user->sendEmailVerificationNotification();
+            $response = [
+                'status' => true,
+                'message' => "Email is sent again to the user",
+            ];
+            return response()->json($response, 200);
+        }
+        else {
+            $response = [
+            'status' => false,
+            'message' => "Email is already verified",
+            ];
+            return response()->json($response, 400);
+        }
+    }
+
     public function login(Request $request) {
         $validator = Validator::make($request->all(), [
             'email' => 'required | email',
@@ -261,6 +296,7 @@ class AuthController extends Controller
 
                 // Send a GET request to the Facebook Graph API to fetch the user
                 $profileResponse = Http::get('https://graph.facebook.com/me', [
+                    'fields' => 'name,id,email',
                     'access_token' => $accessToken,
                 ]);
                 $profileData = json_decode($profileResponse, true);

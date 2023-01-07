@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FriendsController;
 use App\Http\Controllers\GamedataController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\GeneralRequestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +24,7 @@ Route::get('/', function(Request $request) {
 });
 
 Route::post('/signup', [AuthController::class, 'signup']);
+Route::post('/resend-email', [AuthController::class, 'resendEmail']);
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/login-with-facebook', [AuthController::class, 'loginWithFacebook']);
@@ -50,6 +53,10 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
     Route::post('/get-user-data', [GamedataController::class, 'getUserData']);
     Route::post('/update-user-data', [GamedataController::class, 'updateUserData']);
     Route::get('/get-photon-token', [GamedataController::class, 'getPhotonToken']);
+    Route::post('/deposit-entry', [PaymentController::class, 'EntryInDeposit']);
+    Route::post('/withdraw-entry', [PaymentController::class, 'EntryWithDraw']);
+    Route::post('/send-message', [GeneralRequestController::class, 'sendMessage']);
+    Route::get('/get-messages', [GeneralRequestController::class, 'getMessages']);
     Route::get('/get-game-history', [GamedataController::class, 'getPhotonToken']);     // TODO
     Route::get('/my-withdraw-data', [GamedataController::class, 'getPhotonToken']);     // TODO
 });
@@ -58,7 +65,8 @@ Route::get('/auth-for-photon', [GamedataController::class, 'authForPhoton']);
 Route::get('/app-info', function() {
     $response = [
         'url' => config('app.custom_config.app_url'),
-        'version' =>config('app.custom_config.app_version')
+        'version' =>config('app.custom_config.app_version'),
+        'noticeboard' => config('app.custom_config.notice_board')
     ];
     return response()->json($response,200);
 });
