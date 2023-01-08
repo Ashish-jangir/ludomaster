@@ -9,6 +9,7 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Auth\Events\PasswordReset;
 use App\Models\Gamedata;
+use App\Models\WebhookResponses;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
 
@@ -112,7 +113,6 @@ class AuthController extends Controller
             'email' => 'required | email',
             'password'=>'required',
         ]);
-
         $errorCombined = array();
         foreach( $validator->errors()->all() as $error) {
             array_push($errorCombined, $error);
@@ -125,10 +125,10 @@ class AuthController extends Controller
             ];
             return response()->json($response, 400);
         }
-
+        
         $fields = $validator->validated();
         $user = User::where('email', $fields['email'])->first();
-
+        
         if(is_null($user)) {
             $response = [
                 'status' => false,
@@ -143,7 +143,7 @@ class AuthController extends Controller
             ];
             return response()->json($response, 400);
         }
-
+        
         if(!$user->hasVerifiedEmail()) {
             $response = [
                 'status' => false,
@@ -151,9 +151,9 @@ class AuthController extends Controller
             ];
             return response()->json($response, 400);
         }
-
+        
         $token = $user->createToken('Ludo7Master')->plainTextToken;
-
+        
         $response = [
             'status' => true,
             'token' => $token,
@@ -162,7 +162,7 @@ class AuthController extends Controller
         ];
         return response()->json($response, 200);
     }
-
+    
     public function logout(Request $request) {
         $request->user()->tokens()->delete();
         $response = [
