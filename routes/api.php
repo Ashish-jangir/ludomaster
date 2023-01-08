@@ -50,6 +50,8 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
 
 // Api Calls For data routes From Here
 Route::group(['middleware' => ['auth:sanctum']], function() {
+    Route::get('/get-game-history', [GamedataController::class, '']);     // TODO
+    Route::get('/my-withdraw-data', [GamedataController::class, '']);     // TODO
     Route::post('/get-user-data', [GamedataController::class, 'getUserData']);
     Route::post('/update-user-data', [GamedataController::class, 'updateUserData']);
     Route::get('/get-photon-token', [GamedataController::class, 'getPhotonToken']);
@@ -57,10 +59,13 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
     Route::post('/withdraw-entry', [PaymentController::class, 'EntryWithDraw']);
     Route::post('/send-message', [GeneralRequestController::class, 'sendMessage']);
     Route::get('/get-messages', [GeneralRequestController::class, 'getMessages']);
-    Route::get('/get-game-history', [GamedataController::class, 'getPhotonToken']);     // TODO
-    Route::get('/my-withdraw-data', [GamedataController::class, 'getPhotonToken']);     // TODO
+    Route::post('/nowpayments', [PaymentController::class, 'NowPaymentsProcess']);
+    Route::post('/upigateway-create_order', [PaymentController::class, 'UPIGatewayCreateOrder']);
+    Route::post('/upigateway-order_status', [PaymentController::class, 'UPIGatewayOrderStatus']);
+    Route::get('/razorpay-orderid', [PaymentController::class, 'RazorPayOrderId']);
 });
 Route::get('/auth-for-photon', [GamedataController::class, 'authForPhoton']);
+Route::get('/webhook-nowpayments', [PaymentController::class, 'NowPaymentsWebhook']);
 
 Route::get('/app-info', function() {
     $response = [
