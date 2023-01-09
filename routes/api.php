@@ -65,7 +65,7 @@ Route::group(['middleware' => ['auth:sanctum']], function() {
     Route::get('/razorpay-orderid', [PaymentController::class, 'RazorPayOrderId']);
 });
 Route::get('/auth-for-photon', [GamedataController::class, 'authForPhoton']);
-Route::get('/webhook-nowpayments', [PaymentController::class, 'NowPaymentsWebhook']);
+Route::post('/webhook-nowpayments', [PaymentController::class, 'NowPaymentsWebhook']);
 
 Route::get('/app-info', function() {
     $response = [
