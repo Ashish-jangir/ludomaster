@@ -12,6 +12,7 @@ use App\Models\Gamedata;
 use App\Models\WebhookResponses;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Validation\Rule;
 
 
 class AuthController extends Controller
@@ -19,7 +20,7 @@ class AuthController extends Controller
     //
     public function signup(Request $request) {
         $validator = Validator::make($request->all(), [
-            'name'=>'required | unique:users,name',
+            'name'=>'required',
             'email' => 'required | email | unique:users,email',
             'phone' => 'required',
             'password' => 'required|confirmed',
@@ -76,6 +77,7 @@ class AuthController extends Controller
     public function resendEmail(Request $request) {
         $validator = Validator::make($request->all(), [
             'email' => 'required | email',
+            'checking' => Rule::in(['True', 'False'])
         ]);
         $errorCombined = array();
         foreach( $validator->errors()->all() as $error) {
@@ -89,7 +91,25 @@ class AuthController extends Controller
             ];
             return response()->json($response, 400);
         }
-        $user = User::where('email', $validator->validated()['email'])->first();
+        $fields = $validator->validated();
+        $user = User::where('email', $fields['email'])->first();
+
+        if($fields['checking'] == "True") {
+            if($user->email_verified_at == null) {
+                $response = [
+                    'status' => true,
+                    'message' => "not verified",
+                ];
+                return response()->json($response, 200);
+            }
+            else {
+                $response = [
+                    'status' => true,
+                    'message' => "verified",
+                ];
+                return response()->json($response, 200);
+            }
+        }
 
         if($user->email_verified_at == null) {
             $user->sendEmailVerificationNotification();
@@ -101,10 +121,10 @@ class AuthController extends Controller
         }
         else {
             $response = [
-            'status' => false,
+            'status' => true,
             'message' => "Email is already verified",
             ];
-            return response()->json($response, 400);
+            return response()->json($response, 200);
         }
     }
 
@@ -144,13 +164,14 @@ class AuthController extends Controller
             return response()->json($response, 400);
         }
         
-        if(!$user->hasVerifiedEmail()) {
-            $response = [
-                'status' => false,
-                'message' => "User Email is not verified. Please verify the email."
-            ];
-            return response()->json($response, 400);
-        }
+        //Does not need to varified to login
+        // if(!$user->hasVerifiedEmail()) {
+        //     $response = [
+        //         'status' => false,
+        //         'message' => "User Email is not verified. Please verify the email."
+        //     ];
+        //     return response()->json($response, 400);
+        // }
         
         $token = $user->createToken('Ludo7Master')->plainTextToken;
         
@@ -234,7 +255,8 @@ class AuthController extends Controller
         ];
         return response($response, 200);
     }
-     // This function is called when the client sends an access token to your server for authentication.
+    
+    // This function is called when the client sends an access token to your server for authentication.
     public function loginWithFacebook(Request $request) {
         $validator = Validator::make($request->all(), [
             'access_token' => 'required'

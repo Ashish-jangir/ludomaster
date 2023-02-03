@@ -215,6 +215,7 @@ return [
     'custom_config' => [
         'joining_bonus' => env('JOINING_BONUS'),
         'app_url' => env('APP_URL'),
+        'admin_url' => env('ADMIN_URL'),
         'app_version' => env('APP_VERSION'),
         'notice_board' => env('NOTICE_BOARD')
     ]

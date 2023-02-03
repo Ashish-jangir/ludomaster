@@ -16,7 +16,7 @@ class GamedataController extends Controller
     //
     public function getUserData(Request $request) {
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required_without:name', 
+            'user_id' => 'required', 
         ]);
         $errorCombined = array();
         foreach( $validator->errors()->all() as $error) {
@@ -31,7 +31,7 @@ class GamedataController extends Controller
             return response()->json($response, 400);
         }
         $fields = $request;
-        $user = empty($request['user_id']) ? User::where('name', $fields['name'])->first() : User::where('id', $fields['user_id'])->first();
+        $user = User::where('id', $fields['user_id'])->first();
         $gamedata = Gamedata::where('user_id', $user['id'])->first();
         if($request->user()['id'] == $user['id']) {
             $keys = $gamedata->toArray();
@@ -90,7 +90,8 @@ class GamedataController extends Controller
         }
         $user = $request->user();
         $user->name = empty($request['PlayerName']) ? $user->name : $request['PlayerName'];
-        $user->phone = empty($request['Mobile Number']) ? $user->phone : $request['Mobile Number'];
+        $user->phone = empty($request['MobileNumber']) ? $user->phone : $request['MobileNumber'];
+        $user->email = empty($request['Email']) ? $user->email : $request['Email'];
         $user->save();
 
         $gamedata = $user->gamedata;

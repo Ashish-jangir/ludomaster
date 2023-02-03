@@ -10,7 +10,8 @@ class FriendsController extends Controller
 {
     public function addFriend(Request $request) {
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required_without:name', 
+            'user_id' => 'required',
+            'force' => 'required' 
         ]);
         $errorCombined = array();
         foreach( $validator->errors()->all() as $error) {
@@ -26,15 +27,23 @@ class FriendsController extends Controller
         }
         $fields = $validator->validated();
         $user = $request->user();
-        $recipient = empty($request['user_id']) ? User::where('name', $fields['name'])->first() : User::where('id', $fields['user_id'])->first();
+        $recipient =  User::where('id', $fields['user_id'])->first();
         if(is_null($recipient)) {
             $response = [
                 'status' => false,
-                'message' => 'No User exists with this name or id'
+                'message' => 'No User exists with this id'
             ];
             return response()->json($response, 400);
         }
         $user->befriend($recipient);
+        if($fields['force'] == "true") {
+            $recipient->acceptFriendRequest($user);
+            $response = [
+                'status' => true,
+                'message' => 'user added as a friend'
+            ];
+            return response()->json($response, 200);
+        }
         $response = [
             'status' => true,
             'message' => 'sent request to the user'
