@@ -89,26 +89,26 @@ class GamedataController extends Controller
             return response()->json($response, 400);
         }
         $user = $request->user();
-        $user->name = empty($request['PlayerName']) ? $user->name : $request['PlayerName'];
-        $user->phone = empty($request['MobileNumber']) ? $user->phone : $request['MobileNumber'];
-        $user->email = empty($request['Email']) ? $user->email : $request['Email'];
+        $user->name = is_null($request['PlayerName']) ? $user->name : $request['PlayerName'];
+        $user->phone = is_null($request['MobileNumber']) ? $user->phone : $request['MobileNumber'];
+        $user->email = is_null($request['Email']) ? $user->email : $request['Email'];
         $user->save();
 
         $gamedata = $user->gamedata;
-        $gamedata->Reffer = empty($request['Reffer']) ? $gamedata->Reffer : $request['Reffer'];
-        $gamedata->PlayerAvatarUrl = empty($request['PlayerAvatarUrl']) ? $gamedata->PlayerAvatarUrl : $request['PlayerAvatarUrl'];
-        $gamedata->FortuneWheelLastFreeTime = empty($request['FortuneWheelLastFreeTime']) ? $gamedata->FortuneWheelLastFreeTime : $request['FortuneWheelLastFreeTime'];
-        $gamedata->Chats = empty($request['Chats']) ? $gamedata->Chats : $request['Chats'];
-        $gamedata->Emoji = empty($request['Emoji']) ? $gamedata->Emoji : $request['Emoji'];
-        $gamedata->Coins = empty($request['Coins']) ? $gamedata->Coins : $request['Coins'];
-        $gamedata->GamesPlayed = empty($request['GamesPlayed']) ? $gamedata->GamesPlayed : $request['GamesPlayed'];
-        $gamedata->AvatarIndex = empty($request['AvatarIndex']) ? $gamedata->AvatarIndex : $request['AvatarIndex'];
-        $gamedata->FourPlayerWins = empty($request['FourPlayerWins']) ? $gamedata->FourPlayerWins : $request['FourPlayerWins'];
-        $gamedata->LoggedType = empty($request['LoggedType']) ? $gamedata->LoggedType : $request['LoggedType'];
-        $gamedata->PrivateTableWins = empty($request['PrivateTableWins']) ? $gamedata->PrivateTableWins : $request['PrivateTableWins'];
-        $gamedata->TitleFirstLogin = empty($request['TitleFirstLogin']) ? $gamedata->TitleFirstLogin : $request['TitleFirstLogin'];
-        $gamedata->TotalEarnings = empty($request['TotalEarnings']) ? $gamedata->TotalEarnings : $request['TotalEarnings'];
-        $gamedata->TwoPlayerWins = empty($request['TwoPlayerWins']) ? $gamedata->TwoPlayerWins : $request['TwoPlayerWins'];
+        $gamedata->Reffer = is_null($request['Reffer']) ? $gamedata->Reffer : $request['Reffer'];
+        $gamedata->PlayerAvatarUrl = is_null($request['PlayerAvatarUrl']) ? $gamedata->PlayerAvatarUrl : $request['PlayerAvatarUrl'];
+        $gamedata->FortuneWheelLastFreeTime = is_null($request['FortuneWheelLastFreeTime']) ? $gamedata->FortuneWheelLastFreeTime : $request['FortuneWheelLastFreeTime'];
+        $gamedata->Chats = is_null($request['Chats']) ? $gamedata->Chats : $request['Chats'];
+        $gamedata->Emoji = is_null($request['Emoji']) ? $gamedata->Emoji : $request['Emoji'];
+        $gamedata->Coins = is_null($request['Coins']) ? $gamedata->Coins : $request['Coins'];
+        $gamedata->GamesPlayed = is_null($request['GamesPlayed']) ? $gamedata->GamesPlayed : $request['GamesPlayed'];
+        $gamedata->AvatarIndex = is_null($request['AvatarIndex']) ? $gamedata->AvatarIndex : $request['AvatarIndex'];
+        $gamedata->FourPlayerWins = is_null($request['FourPlayerWins']) ? $gamedata->FourPlayerWins : $request['FourPlayerWins'];
+        $gamedata->LoggedType = is_null($request['LoggedType']) ? $gamedata->LoggedType : $request['LoggedType'];
+        $gamedata->PrivateTableWins = is_null($request['PrivateTableWins']) ? $gamedata->PrivateTableWins : $request['PrivateTableWins'];
+        $gamedata->TitleFirstLogin = is_null($request['TitleFirstLogin']) ? $gamedata->TitleFirstLogin : $request['TitleFirstLogin'];
+        $gamedata->TotalEarnings = is_null($request['TotalEarnings']) ? $gamedata->TotalEarnings : $request['TotalEarnings'];
+        $gamedata->TwoPlayerWins = is_null($request['TwoPlayerWins']) ? $gamedata->TwoPlayerWins : $request['TwoPlayerWins'];
         $gamedata->save();
         $response = [
             'status' => true,
